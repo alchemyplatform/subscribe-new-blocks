@@ -7,7 +7,8 @@ const Blocks = () => {
   const BLOCK_LIMIT = 10;
 
   const settings = {
-    apiKey: "vaZNPPCkx5G-YImzn1gZ-MQak91qHgf3", // Replace with your Alchemy API Key.
+    // apiKey: process.env.ALCHEMY_API_KEY, // Replace with your Alchemy API Key.
+    apiKey: "vaZNPPCkx5G-YImzn1gZ-MQak91qHgf3",
     network: Network.ETH_MAINNET, // Replace with your network.
   };
   const alchemy = new Alchemy(settings);
@@ -36,7 +37,6 @@ const Blocks = () => {
       alchemy.ws.removeAllListeners("block");
     };
   }, []);
-  console.log("blocks", blocks);
 
   return (
     <div className={styles.blocks_container}>
