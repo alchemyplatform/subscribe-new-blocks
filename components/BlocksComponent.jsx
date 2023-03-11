@@ -1,40 +1,32 @@
-import { Alchemy, Network } from "alchemy-sdk";
 import React, { useEffect, useState } from "react";
+import io from "Socket.IO-client";
 import styles from "../styles/Blocks.module.css";
 
 const Blocks = () => {
   const [blocks, setBlocks] = useState([]);
+
   const BLOCK_LIMIT = 10;
 
-  const settings = {
-    apiKey: process.env.ALCHEMY_API_KEY, // Replace with your Alchemy API Key.
-    network: Network.ETH_MAINNET, // Replace with your network.
-  };
-  const alchemy = new Alchemy(settings);
-
   useEffect(() => {
-    if (blocks.length === 0) {
-      alchemy.core.getBlock().then((block) => {
-        setBlocks([block]);
+    const socketInitializer = async () => {
+      await fetch("/api/socket");
+      const socket = io();
+      socket.on("new-block", (newBlock) => {
+        setBlocks((prevBlocks) => {
+          if (
+            prevBlocks.length != 0 &&
+            newBlock.number == prevBlocks[0].number
+          ) {
+            return [...prevBlocks];
+          }
+          if (prevBlocks.length >= BLOCK_LIMIT) {
+            return [newBlock, ...prevBlocks.splice(-1)];
+          }
+          return [newBlock, ...prevBlocks];
+        });
       });
-    }
-    alchemy.ws.on("block", async (blockNumber) => {
-      const newBlock = await alchemy.core.getBlock(blockNumber);
-
-      setBlocks((prevBlocks) => {
-        if (prevBlocks.length != 0 && newBlock.number == prevBlocks[0].number) {
-          return [...prevBlocks];
-        }
-        if (prevBlocks.length >= BLOCK_LIMIT) {
-          return [newBlock, ...prevBlocks.splice(-1)];
-        }
-        return [newBlock, ...prevBlocks];
-      });
-    });
-
-    return () => {
-      alchemy.ws.removeAllListeners("block");
     };
+    socketInitializer();
   }, []);
 
   return (
@@ -50,7 +42,7 @@ const Blocks = () => {
           second: "numeric",
         });
         let gas_ratio =
-          parseInt(block.gasUsed._hex, 16) / parseInt(block.gasLimit._hex, 16);
+          parseInt(block.gasUsed.hex, 16) / parseInt(block.gasLimit.hex, 16);
         gas_ratio = (gas_ratio * 100).toString() + "%";
 
         return (
