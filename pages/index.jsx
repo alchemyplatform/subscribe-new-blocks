@@ -6,7 +6,6 @@ export default function Home() {
     <div>
       <main className={styles.main}>
         <BlocksComponent />
-        {/* <InstructionsComponent></InstructionsComponent> */}
       </main>
     </div>
   );
